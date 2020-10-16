@@ -6,6 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rollup -c ./rollup.config.js && npm run types",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build vuepress",
     "types": "tsc --emitDeclarationOnly --project ./tsconfig.json"
   },
   "keywords": [
@@ -30,6 +32,7 @@
     "tslib": "^2.0.3",
     "typescript": "^4.0.3",
     "vue": "^2.6.12",
+    "vuepress": "^1.7.1",
     "vuex": "^3.5.1"
   }
 }

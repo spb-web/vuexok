@@ -46,7 +46,7 @@ export type ModuleState<
   )
 > = Readonly<M extends (...p: any[]) => any ? ReturnType<M> : M>
 
-export type ModuleInstance<M extends ModuleRaw<any, any>> = {
+export type ModuleInstance<M extends Module<any, any>> = {
   state: ModuleState<M['state']>,
   actions: ModuleActions<M['actions']>,
   mutations: ModuleMutations<M['mutations']>,
@@ -72,33 +72,39 @@ const halperReduce = <
   }
 }
 
+const getKeyPath = (path:string, key:string, namespaced?: boolean) => {
+  return namespaced ? `${path}/${key}` : key
+}
+
 const buildModuleObject = <
-  S, R, M extends ModuleRaw<S, R>
+  S, R, M extends Module<S, R>
 >(
   store:Store<R>,
-  name: string,
-  moduleRaw:M extends ModuleRaw<S, R> ? M : ModuleRaw<S, R>,
+  path: string,
+  moduleRaw:M extends Module<S, R> ? M : Module<S, R>,
 ) => {
+  const { namespaced } = moduleRaw
+
   const module:ModuleInstance<M> = {
     state: halperReduce(moduleRaw.state, (key) => {
       // @ts-ignore
-      return store.state[name][key]
+      return store.state[path][key]
     }) as ModuleState<M['state']>,
 
     actions: halperReduce(moduleRaw.actions, (key) => {
-      return (payload:any) => store.dispatch(`${name}/${key}`, payload)
+      return (payload:any) => store.dispatch(getKeyPath(path, key, true), payload)
     }) as ModuleActions<M['actions']>,
 
     mutations: halperReduce(moduleRaw.mutations, (key) => {
-      return (payload:any) => store.commit(`${name}/${key}`, payload)
+      return (payload:any) => store.commit(getKeyPath(path, key, namespaced), payload)
     }) as ModuleMutations<M['mutations']>,
 
     getters: halperReduce(moduleRaw.getters, (key) => {
-      return store.getters[`${name}/${key}`]
+      return store.getters[getKeyPath(path, key, namespaced)]
     }) as ModuleGetters<M['getters']>,
 
     modules: halperReduce(moduleRaw.modules, (key, submodule) => {
-      return buildModuleObject(store, `${name}/${key}`, submodule)
+      return buildModuleObject(store, getKeyPath(path, key, true), submodule)
     }) as ModuleSubmodules<M['modules']>
   }
 
@@ -106,20 +112,16 @@ const buildModuleObject = <
 }
 
 export const createModule = <
-  S, R, M extends ModuleRaw<S, R>
+  S, R, M extends Module<S, R>
 >(
   store:Store<R>,
   path: string,
-  moduleRaw: M extends ModuleRaw<S, R> ? M : ModuleRaw<S, R>,
+  moduleRaw: M extends Module<S, R> ? M : Module<S, R>,
   moduleOptions?: ModuleOptions
 ) => {
   store.registerModule(
     path, 
-    Object.assign(
-      {},
-      moduleRaw,
-      { namespaced: true },
-    ),
+    moduleRaw,
     moduleOptions,
   )
 
