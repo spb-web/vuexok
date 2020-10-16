@@ -1,0 +1,35 @@
+{
+  "name": "vuexok",
+  "version": "0.0.1",
+  "description": "",
+  "main": "dist/vuexok.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup -c ./rollup.config.js && npm run types",
+    "types": "tsc --emitDeclarationOnly --project ./tsconfig.json"
+  },
+  "keywords": [
+    "typescript",
+    "vue",
+    "vuex"
+  ],
+  "author": "spbweb",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spb-web/vuexok.git"
+  },
+  "bugs": {
+    "url": "https://github.com/spb-web/vuexok/issues"
+  },
+  "homepage": "https://github.com/spb-web/vuexok#readme",
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^6.0.0",
+    "rollup": "^2.31.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "tslib": "^2.0.3",
+    "typescript": "^4.0.3",
+    "vue": "^2.6.12",
+    "vuex": "^3.5.1"
+  }
+}
