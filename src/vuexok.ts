@@ -7,32 +7,30 @@ import type {
   Mutation, 
   ActionObject, 
   GetterTree,
+  Action
 } from 'vuex/types/index'
 
-export type NonUndefined<A> = A extends undefined ? never : A;
+type NonUndefined<A> = A extends undefined ? {} : A;
 
-export type ModuleActions<A extends ActionTree<any, any> | undefined, > = {
-  readonly [K in keyof A]: NonUndefined<A[K]> extends ActionObject<any, any> 
-    ? unknown
-    // @ts-ignore
-    : (this: ThisType<A[K]>, payload:Parameters<A[K]>[1]) => (
-      // @ts-ignore
-      ReturnType<A[K]>
-    )
+export type ActionMutationPayload<T extends (i:any, ...args: any) => any> = T extends (i:any, ...args: infer P) => any ? P : never;
+
+export type ActionHandler<A extends Action<any, any>> = A extends ActionObject<any, any> ? A['handler'] : A
+
+export type ModuleActions<A extends ActionTree<any, any>> = {
+  readonly [K in keyof A]: (this: ThisType<Required<A>[K]>, ...payload:ActionMutationPayload<ActionHandler<Required<A>[K]>>) => (
+    ReturnType<ActionHandler<Required<A>[K]>>
+  )
 }
 
-export type ModuleMutations<A extends MutationTree<any> | undefined> = {
+export type ModuleMutations<A extends MutationTree<any>> = {
   readonly [K in keyof A]: NonUndefined<A[K]> extends Mutation<any> 
-    // @ts-ignore
-    ? (this: ThisType<A[K]>, payload:Parameters<A[K]>[1]) => (
-      // @ts-ignore
+    ? (this: ThisType<A[K]>, ...payload:ActionMutationPayload<A[K]>) => (
       ReturnType<A[K]>
     )
     : unknown
 }
 
-export type ModuleGetters<A extends GetterTree<any, any> | undefined> = {
-  // @ts-ignore
+export type ModuleGetters<A extends GetterTree<any, any>> = {
   readonly [K in keyof A]: ReturnType<A[K]>
 }
 
@@ -48,9 +46,9 @@ export type ModuleState<
 
 export type ModuleInstance<M extends Module<any, any>> = {
   state: ModuleState<M['state']>,
-  actions: ModuleActions<M['actions']>,
-  mutations: ModuleMutations<M['mutations']>,
-  getters: ModuleGetters<M['getters']>,
+  actions: ModuleActions<NonUndefined<M['actions']>>,
+  mutations: ModuleMutations<NonUndefined<M['mutations']>>,
+  getters: ModuleGetters<NonUndefined<M['getters']>>,
   modules: ModuleSubmodules<M['modules']>
 }
 
@@ -93,15 +91,15 @@ const buildModuleObject = <
 
     actions: halperReduce(moduleRaw.actions, (key) => {
       return (payload:any) => store.dispatch(getKeyPath(path, key, true), payload)
-    }) as ModuleActions<M['actions']>,
+    }) as any as ModuleActions<NonUndefined<M['actions']>>,
 
     mutations: halperReduce(moduleRaw.mutations, (key) => {
       return (payload:any) => store.commit(getKeyPath(path, key, namespaced), payload)
-    }) as ModuleMutations<M['mutations']>,
+    }) as ModuleMutations<NonUndefined<M['mutations']>>,
 
     getters: halperReduce(moduleRaw.getters, (key) => {
       return store.getters[getKeyPath(path, key, namespaced)]
-    }) as ModuleGetters<M['getters']>,
+    }) as ModuleGetters<NonUndefined<M['getters']>>,
 
     modules: halperReduce(moduleRaw.modules, (key, submodule) => {
       return buildModuleObject(store, getKeyPath(path, key, true), submodule)
