@@ -59,14 +59,22 @@ const halperReduce = <
   I,
 >(
   payload:P | undefined,
-  reducer:(key: string, value:any) => I
+  getter:(key: string, value:any) => I
 ) => {
   if (payload) {
-    return Object.keys(payload).reduce((acc, key) => {
-      acc[key as keyof P] = reducer(key, payload[key as keyof P])
+    const map = {}
 
-      return acc
-    }, {} as Record<keyof P, I>)
+    Object.keys(payload).forEach((key) => {
+      Object.defineProperty(
+        map,
+        key,
+        {
+          get:() => getter(key, payload[key as keyof P]),
+        },
+      )
+    })
+
+    return map
   }
 }
 
