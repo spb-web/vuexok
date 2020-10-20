@@ -12,29 +12,47 @@ import type {
 
 type NonUndefined<A> = A extends undefined ? {} : A;
 
-export type ActionMutationPayload<T extends (i:any, ...args: any) => any> = T extends (i:any, ...args: infer P) => any ? P : never;
+export type ActionOrMutationPayload<
+  T extends (injectee:any, ...payload: any) => any
+> = (
+  T extends (injectee:any, ...payload: infer P) => any
+    ? P
+    : never
+)
 
-export type ActionHandler<A extends Action<any, any>> = A extends ActionObject<any, any> ? A['handler'] : A
+export type ActionHandler<A extends Action<any, any>> = (
+  A extends ActionObject<any, any>
+    ? A['handler']
+    : A
+)
 
 export type ModuleActions<A extends ActionTree<any, any>> = {
-  readonly [K in keyof A]: (this: ThisType<Required<A>[K]>, ...payload:ActionMutationPayload<ActionHandler<Required<A>[K]>>) => (
-    ReturnType<ActionHandler<Required<A>[K]>>
+  readonly [K in keyof A]: (
+    this: ThisType<A[K]>,
+    ...payload:ActionOrMutationPayload<ActionHandler<A[K]>>
+  ) => (
+    ReturnType<ActionHandler<A[K]>>
   )
 }
 
 export type ModuleMutations<A extends MutationTree<any>> = {
-  readonly [K in keyof A]: NonUndefined<A[K]> extends Mutation<any> 
-    ? (this: ThisType<A[K]>, ...payload:ActionMutationPayload<A[K]>) => (
-      ReturnType<A[K]>
-    )
-    : unknown
+  readonly [K in keyof A]: (
+    NonUndefined<A[K]> extends Mutation<any> 
+      ? (
+          this: ThisType<A[K]>,
+          ...payload:ActionOrMutationPayload<A[K]>
+        ) => ReturnType<A[K]>
+      : unknown
+  )
 }
 
 export type ModuleGetters<A extends GetterTree<any, any>> = {
   readonly [K in keyof A]: ReturnType<A[K]>
 }
 
-export type ModuleSubmodules<M extends Record<string, any> | undefined> = {
+export type ModuleSubmodules<
+  M extends Record<string, any> | undefined
+> = {
   readonly [K in keyof M]: ModuleInstance<M[K]>
 }
 
@@ -52,9 +70,7 @@ export type ModuleInstance<M extends Module<any, any>> = {
   modules: ModuleSubmodules<M['modules']>
 }
 
-export type ModuleRaw<S, R> = Omit<Module<S, R>, 'namespaced'>
-
-const halperReduce = <
+const helperReduce = <
   P extends Record<string, any>,
   I,
 >(
@@ -69,7 +85,7 @@ const halperReduce = <
         map,
         key,
         {
-          get:() => getter(key, payload[key as keyof P]),
+          get: () => getter(key, payload[key as keyof P]),
         },
       )
     })
@@ -78,7 +94,11 @@ const halperReduce = <
   }
 }
 
-const getKeyPath = (path:string, key:string, namespaced?: boolean) => {
+const getKeyPath = (
+  path:string,
+  key:string,
+  namespaced?: boolean,
+) => {
   return namespaced ? `${path}/${key}` : key
 }
 
@@ -92,25 +112,35 @@ const buildModuleObject = <
   const { namespaced } = moduleRaw
 
   const module:ModuleInstance<M> = {
-    state: halperReduce(moduleRaw.state, (key) => {
+    state: helperReduce(moduleRaw.state, (key) => {
       // @ts-ignore
       return store.state[path][key]
     }) as ModuleState<M['state']>,
 
-    actions: halperReduce(moduleRaw.actions, (key) => {
-      return (payload:any) => store.dispatch(getKeyPath(path, key, true), payload)
+    actions: helperReduce(moduleRaw.actions, (key) => {
+      return (payload:any) => store.dispatch(
+        getKeyPath(path, key, true),
+        payload,
+      )
     }) as any as ModuleActions<NonUndefined<M['actions']>>,
 
-    mutations: halperReduce(moduleRaw.mutations, (key) => {
-      return (payload:any) => store.commit(getKeyPath(path, key, namespaced), payload)
+    mutations: helperReduce(moduleRaw.mutations, (key) => {
+      return (payload:any) => store.commit(
+        getKeyPath(path, key, namespaced),
+        payload,
+      )
     }) as ModuleMutations<NonUndefined<M['mutations']>>,
 
-    getters: halperReduce(moduleRaw.getters, (key) => {
+    getters: helperReduce(moduleRaw.getters, (key) => {
       return store.getters[getKeyPath(path, key, namespaced)]
     }) as ModuleGetters<NonUndefined<M['getters']>>,
 
-    modules: halperReduce(moduleRaw.modules, (key, submodule) => {
-      return buildModuleObject(store, getKeyPath(path, key, true), submodule)
+    modules: helperReduce(moduleRaw.modules, (key, submodule) => {
+      return buildModuleObject(
+        store,
+        getKeyPath(path, key, true),
+        submodule,
+      )
     }) as ModuleSubmodules<M['modules']>
   }
 
@@ -131,7 +161,5 @@ export const createModule = <
     moduleOptions,
   )
 
-  const module = buildModuleObject(store, path, moduleRaw)
-
-  return module
+  return buildModuleObject(store, path, moduleRaw)
 }
