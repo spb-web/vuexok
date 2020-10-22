@@ -119,7 +119,7 @@ const buildModuleObject = <
 
     actions: helperReduce(moduleRaw.actions, (key) => {
       return (payload:any) => store.dispatch(
-        getKeyPath(path, key, true),
+        getKeyPath(path, key, namespaced),
         payload,
       )
     }) as any as ModuleActions<NonUndefined<M['actions']>>,
