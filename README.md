@@ -2,13 +2,13 @@
 
 vuexok маленький пакет для больших проектов. 
 
-Vuexok не заменяет api vuex, а расширяет его, добавляя поддержку типов typescript и дает возможность использовать экшены и мутации без явного использования [commit](https://vuex.vuejs.org/guide/mutations.html) и [dispatch](https://vuex.vuejs.org/guide/actions.html#dispatching-actions) .
-По этому миграция в большенстве случает пройдет быстро и безболезненно
+Vuexok не заменяет api vuex, а расширяет его, добавляя поддержку типов typescript и дает возможность использовать экшены и мутации без явного использования [commit](https://vuex.vuejs.org/guide/mutations.html) и [dispatch](https://vuex.vuejs.org/guide/actions.html#dispatching-actions),
+поэтому миграция в большенстве случает пройдет быстро и безболезненно.
 
 ## Документация
 [https://spb-web.github.io/vuexok/](https://spb-web.github.io/vuexok/)
 
-Будет здорово если придут пулреквесты с дополнениями к документации и с переводами
+Будет здорово если придут пулреквесты с дополнениямии и с переводами к документации
 
 ## Установка
 ### NMP

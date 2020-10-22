@@ -6,3 +6,7 @@ src
 deploy.sh
 rollup.config.js
 tsconfig.json
+test
+examples
+babel.config.js
+jest.config.js
