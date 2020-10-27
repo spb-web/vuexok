@@ -1,3 +1,4 @@
+import { WatchOptions } from 'vue/types/umd'
 import type { 
   Module, 
   Store,
@@ -7,7 +8,7 @@ import type {
   Mutation, 
   ActionObject, 
   GetterTree,
-  Action
+  Action,
 } from 'vuex/types/index'
 
 type NonUndefined<A> = A extends undefined ? {} : A;
@@ -62,12 +63,22 @@ export type ModuleState<
   )
 > = Readonly<M extends (...p: any[]) => any ? ReturnType<M> : M>
 
-export type ModuleInstance<M extends Module<any, any>> = {
+export type Unwatch = () => void
+
+export interface ModuleInstance<M extends Module<any, any>> {
   state: ModuleState<M['state']>,
   actions: ModuleActions<NonUndefined<M['actions']>>,
   mutations: ModuleMutations<NonUndefined<M['mutations']>>,
   getters: ModuleGetters<NonUndefined<M['getters']>>,
-  modules: ModuleSubmodules<M['modules']>
+  modules: ModuleSubmodules<M['modules']>,
+  watch: <T extends (
+    state:ModuleState<M['state']>,
+    getters:ModuleGetters<NonUndefined<M['getters']>>
+  ) => any>(
+    getter: T,
+    callback: (value: ReturnType<T>, oldValue: ReturnType<T>) => void,
+    options?: WatchOptions
+  ) => Unwatch
 }
 
 const helperReduce = <
@@ -99,7 +110,7 @@ const getKeyPath = (
   key:string,
   namespaced?: boolean,
 ) => {
-  return namespaced ? `${path}/${key}` : key
+  return namespaced ? path + '/' + key : key
 }
 
 const buildModuleObject = <
@@ -141,7 +152,19 @@ const buildModuleObject = <
         getKeyPath(path, key, true),
         submodule,
       )
-    }) as ModuleSubmodules<M['modules']>
+    }) as ModuleSubmodules<M['modules']>,
+
+    watch: (
+      getter,
+      callback,
+      options
+    ) => {
+      return store.watch(
+        () => getter(module.state, module.getters),
+        callback,
+        options,
+      )
+    }
   }
 
   return module
