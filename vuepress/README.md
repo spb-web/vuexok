@@ -1,10 +1,11 @@
-# Vuexok
+# Vuex на максималках вместе с Vuexok
 
 vuexok маленький пакет для больших проектов. 
 
+![npm bundle size](https://img.shields.io/bundlephobia/minzip/vuexok?color=%233eaf7c&style=for-the-badge&logo=appveyor)
+
 ::: tip
-Vuexok не заменяет api vuex, а расширяет его, добавляя поддержку типов typescript и дает возможность использовать экшены и мутации без явного использования [commit](https://vuex.vuejs.org/guide/mutations.html) и [dispatch](https://vuex.vuejs.org/guide/actions.html#dispatching-actions) .
-По этому миграция в большенстве случает пройдет быстро и безболезненно
+Vuexok не заменяет api vuex, а расширяет его, добавляя поддержку типов typescript и дает возможность использовать экшены и мутации без явного использования [commit](https://vuex.vuejs.org/guide/mutations.html) и [dispatch](https://vuex.vuejs.org/guide/actions.html#dispatching-actions), поэтому миграция в большинстве случает пройдет быстро и безболезненно.
 :::
 
 ## Установка
@@ -19,19 +20,20 @@ yarn add vuexok
 ```
 
 ## Что даст vuexok
-- Больше не нужный константы для экшенов и мутаций
+- Больше не нужны константы для экшенов и мутаций
+- Более удобная работа с вотчерами
 - Полная поддержка typescript :tada:
-- Простая миграция с vuex. Вам не придется всё переписывать.
+- Простая миграция с vuex: вам не придется всё переписывать
 - Совместимо с vuex 4 и vue 3 :fire:
-- Маленький размер vuexok. Всего 532B (322B gzip) за простоту в работе с хранилищем
+- Маленький размер vuexok
 
 ## Применение
 ::: warning
-Обратите внимание, что vuexok создает динамические модули. Все модуль будет зарегистрирован уже и после того, как хранилище было создано, используя метод [store.registerModule](https://vuex.vuejs.org/guide/modules.html#dynamic-module-registration)
+Обратите внимание, что vuexok создает динамические модули. Все модули будут зарегистрированы уже после того, как хранилище было создано, используя метод [store.registerModule](https://vuex.vuejs.org/guide/modules.html#dynamic-module-registration)
 :::
 
 ### Создание модуля
-Обратите внимание как вызывается мутация plus из экшена increment
+Обратите внимание, как вызывается мутация plus из экшена increment
 ``` ts{10}
 import { createModule } from 'vuexok'
 import store from '@/store'
@@ -63,12 +65,10 @@ export const counterModule = createModule(store, 'counterModule', {
 
 ### Использование модуля Vuexok в компонентах Vue
 ::: tip
-Модули vuexok внитри использует vuex. Основной целью создания являлось не создания нового api, а расширение текущего api vuex.
-По этому при миграции у вас не будет необходимости переписывать код компонентов.
+Vuexok внутри использует vuex. Основной целью создания являлось не создания нового api, а расширение текущего api vuex, поэтому при миграции у вас не будет необходимости переписывать код компонентов.
 :::
 
-Свойство state в модуле реактивно, как и в [store.state](https://vuex.vuejs.org/guide/state.html#getting-vuex-state-into-vue-components).
-По этому что бы использовать состояние модуля в компонентах Vue достаточно просто вернуть часть состояния модуля в [вычисляемом свойстве](https://ru.vuejs.org/v2/guide/computed.html).
+Свойство state в модуле реактивно, как и в [store.state](https://vuex.vuejs.org/guide/state.html#getting-vuex-state-into-vue-components), так что чтобы использовать состояние модуля в компонентах Vue достаточно просто вернуть часть состояния модуля в [вычисляемом свойстве](https://ru.vuejs.org/v2/guide/computed.html).
 
 ```ts{1,6,7,8}
 import { counterModule } from '@/store/modules/counterModule'
@@ -112,7 +112,7 @@ counterModule.actions.increment().then(() => {
   console.log('increment called')
 })
 ```
-##### Мутаций
+##### Мутации
 ```ts
 import { counterModule } from '@/store/modules/counterModule'
 
@@ -120,4 +120,16 @@ import { counterModule } from '@/store/modules/counterModule'
 // store.commit('counterModule/setNumber', 10)
 
 counterModule.mutations.setNumber(10)
+```
+
+#### Вотчеры
+
+Вотчеры модулей работают также как [store.watch](https://vuex.vuejs.org/api/#watch). Единственная разница заключается в том , что в качестве параметров функции-гетера передаются стейт и гетеры модуля
+
+```ts
+const unwatch = jwtModule.watch(
+  (state, getters) => getters.jwt,
+  (jwt) => console.log(`New token: ${jwt}`),
+  { immediate: true },
+)
 ```

@@ -9,14 +9,17 @@
     "allowJs": true,
     "sourceMap": true,
     "strict": true,
-    "experimentalDecorators": true,
     "declaration": true,
     "declarationDir": "./dist",
     "rootDir": "src",
+    "types": [
+      "@types/node",
+    ]
   },
+  "include": ["./src"],
   "exclude": [
     "rollup.config.js",
-    "node_modules",
+    "node_modules/**/*",
     "dist",
     "docs"
   ]

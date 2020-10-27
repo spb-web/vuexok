@@ -1,13 +1,13 @@
 {
   "name": "vuexok",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "",
   "main": "dist/vuexok.js",
   "types": "dist/vuexok.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rollup -c ./rollup.config.js && npm run types",
-    "docs:dev": "vuepress dev docs",
+    "docs:dev": "vuepress dev vuepress",
     "docs:build": "vuepress build vuepress",
     "types": "tsc --emitDeclarationOnly --project ./tsconfig.json"
   },
