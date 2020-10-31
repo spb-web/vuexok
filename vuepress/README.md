@@ -2,7 +2,7 @@
 
 vuexok маленький пакет для больших проектов. 
 
-![npm bundle size](https://img.shields.io/bundlephobia/minzip/vuexok?color=%233eaf7c&style=for-the-badge&logo=appveyor)
+[![npm bundle size](https://img.shields.io/bundlephobia/minzip/vuexok?color=%233eaf7c&style=for-the-badge&logo=appveyor)](https://bundlephobia.com/result?p=vuexok)
 
 ::: tip
 Vuexok не заменяет api vuex, а расширяет его, добавляя поддержку типов typescript и дает возможность использовать экшены и мутации без явного использования [commit](https://vuex.vuejs.org/guide/mutations.html) и [dispatch](https://vuex.vuejs.org/guide/actions.html#dispatching-actions), поэтому миграция в большинстве случает пройдет быстро и безболезненно.
@@ -65,7 +65,7 @@ export const counterModule = createModule(store, 'counterModule', {
 
 ### Использование модуля Vuexok в компонентах Vue
 ::: tip
-Vuexok внутри использует vuex. Основной целью создания являлось не создания нового api, а расширение текущего api vuex, поэтому при миграции у вас не будет необходимости переписывать код компонентов.
+Vuexok внутри использует vuex. Основной целью создания vuexok являлось не создания нового api, а расширение текущего api vuex. Поэтому при миграции у вас не будет необходимости переписывать код компонентов.
 :::
 
 Свойство state в модуле реактивно, как и в [store.state](https://vuex.vuejs.org/guide/state.html#getting-vuex-state-into-vue-components), так что чтобы использовать состояние модуля в компонентах Vue достаточно просто вернуть часть состояния модуля в [вычисляемом свойстве](https://ru.vuejs.org/v2/guide/computed.html).
