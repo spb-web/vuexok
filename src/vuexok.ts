@@ -89,19 +89,13 @@ const helperReduce = <
   getter:(key: string, value:any) => I
 ) => {
   if (payload) {
-    const map = {}
-
-    Object.keys(payload).forEach((key) => {
-      Object.defineProperty(
-        map,
-        key,
-        {
-          get: () => getter(key, payload[key as keyof P]),
-        },
-      )
+    return new Proxy(payload, {
+      get(target, name:string) {
+        if (Object.prototype.hasOwnProperty.call(target, name)) {
+          return getter(name, payload[name as keyof P])
+        }
+      }
     })
-
-    return map
   }
 }
 
@@ -123,10 +117,12 @@ const buildModuleObject = <
   const { namespaced } = moduleRaw
 
   const module:ModuleInstance<M> = {
-    state: helperReduce(moduleRaw.state, (key) => {
-      // @ts-ignore
-      return store.state[path][key]
-    }) as ModuleState<M['state']>,
+    state: new Proxy({} as ModuleState<M['state']>, {
+      get(target, name) {
+        // @ts-ignore
+        return store.state[path][name]
+      }
+    }),
 
     actions: helperReduce(moduleRaw.actions, (key) => {
       return (payload:any) => store.dispatch(
@@ -152,7 +148,7 @@ const buildModuleObject = <
         getKeyPath(path, key, true),
         submodule,
       )
-    }) as ModuleSubmodules<M['modules']>,
+    }) as any as ModuleSubmodules<M['modules']>,
 
     watch: (
       getter,
