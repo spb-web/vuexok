@@ -9,7 +9,7 @@ Vuexok does not replace the vuex api but extends it. Adds support for typescript
 :::
 
 ## Install
-### NMP
+### NPM
 ```
 npm install vuexok --save
 ```

@@ -112,7 +112,7 @@ const buildModuleObject = <
 >(
   store:Store<R>,
   path: string,
-  moduleRaw:M extends Module<S, R> ? M : Module<S, R>,
+  moduleRaw: M,
 ) => {
   const { namespaced } = moduleRaw
 
@@ -180,5 +180,10 @@ export const createModule = <
     moduleOptions,
   )
 
-  return buildModuleObject(store, path, moduleRaw)
+  return buildModuleObject<
+    S,
+    R,
+    typeof moduleRaw & M
+    // @ts-ignore
+  >(store, path, moduleRaw)
 }
