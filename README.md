@@ -1,8 +1,8 @@
 # Vuexok
 
-[![npm bundle size](https://img.shields.io/bundlephobia/minzip/vuexok?color=%233eaf7c&style=for-the-badge&logo=appveyor)](https://bundlephobia.com/result?p=vuexok)
-
 vuexok маленький пакет для больших проектов. 
+
+[![npm bundle size](https://img.shields.io/bundlephobia/minzip/vuexok?color=%233eaf7c&style=for-the-badge&logo=appveyor)](https://bundlephobia.com/result?p=vuexok)
 
 Vuexok не заменяет api vuex, а расширяет его, добавляя поддержку типов typescript и дает возможность использовать экшены и мутации без явного использования [commit](https://vuex.vuejs.org/guide/mutations.html) и [dispatch](https://vuex.vuejs.org/guide/actions.html#dispatching-actions) .
 По этому миграция в большенстве случает пройдет быстро и безболезненно
@@ -30,3 +30,4 @@ yarn add vuexok
 - Простая миграция с vuex: вам не придется всё переписывать
 - Совместимо с vuex 4 и vue
 - Маленький размер vuexok
+- Вызов экшенов из веб-воркеров

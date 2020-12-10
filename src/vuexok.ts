@@ -65,6 +65,8 @@ export type ModuleState<
 
 export type Unwatch = () => void
 
+export const modules:Map<string, ModuleInstance<Module<any, any>>> = new Map()
+
 export interface ModuleInstance<M extends Module<any, any>> {
   state: ModuleState<M['state']>,
   actions: ModuleActions<NonUndefined<M['actions']>>,
@@ -107,7 +109,7 @@ const getKeyPath = (
   return namespaced ? path + '/' + key : key
 }
 
-const buildModuleObject = <
+export const buildModuleObject = <
   S, R, M extends Module<S, R>
 >(
   store:Store<R>,
@@ -180,10 +182,14 @@ export const createModule = <
     moduleOptions,
   )
 
-  return buildModuleObject<
+  const module = buildModuleObject<
     S,
     R,
     typeof moduleRaw & M
     // @ts-ignore
   >(store, path, moduleRaw)
+
+  modules.set(path, module)
+
+  return module
 }

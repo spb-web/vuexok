@@ -39,6 +39,37 @@ module.exports = {
     }
   },
   themeConfig: {
+    sidebar: [
+      {
+        title: 'Introduction',   // required
+        path: '/',      // optional, link of the title, which should be an absolute path and must exist
+        collapsable: false, // optional, defaults to true
+        sidebarDepth: -1,    // optional, defaults to 1
+        children: [
+          '/'
+        ]
+      },
+      {
+        title: 'Tooling',
+        path: '/Tooling', 
+        initialOpenGroupIndex: 1 // optional, defaults to 0, defines the index of initially opened subgroup
+      },
+      {
+        title: 'Worker',
+        path: '/Worker', 
+        initialOpenGroupIndex: -1 // optional, defaults to 0, defines the index of initially opened subgroup
+      },
+      {
+        title: 'No typescript',
+        path: '/JsProjects', 
+        initialOpenGroupIndex: -1 // optional, defaults to 0, defines the index of initially opened subgroup
+      },
+      {
+        title: 'SSR',
+        path: '/Ssr', 
+        initialOpenGroupIndex: -1 // optional, defaults to 0, defines the index of initially opened subgroup
+      },
+    ],
     locales: {
       '/': {
         nav: [
