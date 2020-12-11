@@ -73,6 +73,15 @@ export interface ModuleInstance<M extends Module<any, any>> {
   mutations: ModuleMutations<NonUndefined<M['mutations']>>,
   getters: ModuleGetters<NonUndefined<M['getters']>>,
   modules: ModuleSubmodules<M['modules']>,
+  /**
+   * Reactively watch fn's return value, and call the callback when
+   * the value changes. fn receives the store's state as the first
+   * argument, and getters as the second argument. Accepts an
+   * optional options object that takes the same options as Vue's
+   * vm.$watch method (opens new window).
+   *
+   * To stop watching, call the returned unwatch function.
+   */
   watch: <T extends (
     state:ModuleState<M['state']>,
     getters:ModuleGetters<NonUndefined<M['getters']>>
@@ -81,6 +90,18 @@ export interface ModuleInstance<M extends Module<any, any>> {
     callback: (value: ReturnType<T>, oldValue: ReturnType<T>) => void,
     options?: WatchOptions
   ) => Unwatch
+  /**
+   * You may check if the module is already registered to the store or not via hasModule method.
+   */
+  hasModule: () => boolean,
+  /**
+   * You can remove a registered module with unregister method.
+   */
+  unregister: () => void,
+  /**
+   * 
+   */
+  register: (moduleOptions?: ModuleOptions) => void,
 }
 
 const helperReduce = <
@@ -162,11 +183,38 @@ export const buildModuleObject = <
         callback,
         options,
       )
+    },
+    hasModule() {
+      return store.hasModule(path)
+    },
+    unregister() {
+      store.unregisterModule(path)
+    },
+    register(moduleOptions) {
+      store.registerModule(
+        path, 
+        moduleRaw,
+        moduleOptions,
+      )
     }
   }
 
+  modules.set(path, module)
+
   return module
 }
+
+// Взможно лучше сделать так: 
+//
+// let vuexStore:Store<any>|null = null
+
+// export const vuexokUseStore = <R>(store:Store<R>) => {
+//   if (vuexStore) {
+//     throw new Error()
+//   }
+
+//   vuexStore = store
+// }
 
 export const createModule = <
   S, R, M extends Module<S, R>
@@ -176,12 +224,6 @@ export const createModule = <
   moduleRaw: M extends Module<S, R> ? M : Module<S, R>,
   moduleOptions?: ModuleOptions
 ) => {
-  store.registerModule(
-    path, 
-    moduleRaw,
-    moduleOptions,
-  )
-
   const module = buildModuleObject<
     S,
     R,
@@ -189,7 +231,7 @@ export const createModule = <
     // @ts-ignore
   >(store, path, moduleRaw)
 
-  modules.set(path, module)
+  module.register(moduleOptions)
 
   return module
 }
