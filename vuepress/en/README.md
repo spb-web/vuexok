@@ -132,3 +132,7 @@ const unwatch = jwtModule.watch(
   { immediate: true },
 )
 ```
+
+
+
+If you have a question or need support using Vuexok, please double-check your code and setup first. If you think you have found a bug or want to propose a feature, use the issues page.

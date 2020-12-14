@@ -27,7 +27,7 @@ export const vuexokWorkerGetActions = <
                 break;
               case 'vuexok:action:reject':
                 removeListener()
-                reject(event.data.result)
+                reject(new Error(event.data.errorMessage))
                 break;
             }
           }

@@ -34,3 +34,8 @@ const countModuleActions = vuexokWorkerGetActions<typeof countModule>('countModu
   <source src="/vuexok/video/createWorker.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
+
+## Обработка ошибок экшена
+Для взаимодействия воркера и основного потока используется метод [postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Worker/postMessage). 
+
+`postMessage` использует [алгоритм структурированного клонирования](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm), реализация которого в ff не [поддерживает передачу нативных ошибок](https://bugzilla.mozilla.org/show_bug.cgi?id=1556604). По этому вместо оригинального объекта ошибки vuexok передает в воркер поле `message` объекта [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error) и внутри воркера создается новый экземпляр ошибки `new Error(message)`
