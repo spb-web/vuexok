@@ -1,10 +1,25 @@
 import { modules } from './vuexok'
-import { ActionHandler } from './vuexok'
+import type { ActionHandler } from './vuexok'
+import type { VuexokActionCallEvent } from './vuexokWorkerGetActions'
+
+export type VuexokActionResolveEvent = {
+  type: 'vuexok:action:resolve',
+  result: any,
+  vuexokCallbackId: string,
+}
+
+export type VuexokActionRejectEvent = {
+  type: 'vuexok:action:reject',
+  errorMessage: string,
+  vuexokCallbackId: string,
+}
 
 export const vuexokWorkerWrapper = (worker:Worker) => {
-  const vuexokWorkerEventHandler = async (event:MessageEvent) => {
+  const vuexokWorkerEventHandler = async (
+    event:MessageEvent<VuexokActionCallEvent>
+  ) => {
     if (event.data.type === 'vuexok:action') {
-      const { path, action, payload, callbackId } = event.data
+      const { path, action, payload, vuexokCallbackId } = event.data
 
       try {
         const module = modules.get(path)
@@ -22,22 +37,25 @@ export const vuexokWorkerWrapper = (worker:Worker) => {
         }
 
         const result = await moduleAction(payload)
-
-        worker.postMessage({
+        const eventData:VuexokActionResolveEvent = {
           type: 'vuexok:action:resolve',
           result,
-          callbackId,
-        })
+          vuexokCallbackId,
+        }
+
+        worker.postMessage(eventData)
       } catch (error) {
-        worker.postMessage({
+        const eventData:VuexokActionRejectEvent = {
           type: 'vuexok:action:reject',
           errorMessage: `[Vuexok/vuexokWorkerWrapper/${path}/${action}]: ${
             error.messgae ?? (
               typeof error === 'string' ? error : 'Unknow error;'
             )
           }`,
-          callbackId,
-        })
+          vuexokCallbackId,
+        }
+
+        worker.postMessage(eventData)
       }
     }
   }

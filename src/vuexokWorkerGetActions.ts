@@ -1,11 +1,23 @@
 import type { Module } from 'vuex'
 import type { ModuleInstance } from './vuexok'
+import type {
+  VuexokActionRejectEvent,
+  VuexokActionResolveEvent,
+} from './vuexokWorkerWrapper'
 
-const ctx: Worker = self as any
+export type VuexokActionCallEvent = {
+  type: 'vuexok:action',
+  path: string,
+  action: string,
+  payload: any,
+  vuexokCallbackId: string,
+}
 
 export type WorkerModuleActions<
   M extends ModuleInstance<Module<any, any>>
 > = M['actions']
+
+const ctx: Worker = self as any
 
 export const vuexokWorkerGetActions = <
   M extends ModuleInstance<Module<any, any>>
@@ -13,21 +25,30 @@ export const vuexokWorkerGetActions = <
   return new Proxy(
     {},
     {
-      get: (target, action) => {
+      get: (target, action:string) => {
         return (payload:any) => new Promise((resolve, reject) => {
-          const callbackId = Math.random().toString(32)
+          const vuexokCallbackId = Math.random().toString(32)
           const removeListener = () => {
             ctx.removeEventListener('message', callbackListener)
           }
-          const callbackListener = (event:MessageEvent) => {
-            switch (event.data.type) {
+          const callbackListener = (
+            event:MessageEvent<
+              VuexokActionResolveEvent|VuexokActionRejectEvent
+            >
+          ) => {
+            const { data } = event
+            if (vuexokCallbackId !== data.vuexokCallbackId) {
+              return
+            }
+
+            switch (data.type) {
               case 'vuexok:action:resolve':
                 removeListener()
-                resolve(event.data.result)
+                resolve(data.result)
                 break;
               case 'vuexok:action:reject':
                 removeListener()
-                reject(new Error(event.data.errorMessage))
+                reject(new Error(data.errorMessage))
                 break;
             }
           }
@@ -37,15 +58,17 @@ export const vuexokWorkerGetActions = <
             callbackListener,
           )
 
-          ctx.postMessage({
+          const eventData:VuexokActionCallEvent = {
             type: 'vuexok:action',
             path,
             action,
             payload,
-            callbackId,
-          })
+            vuexokCallbackId,
+          }
+
+          ctx.postMessage(eventData)
         })
-      }
+      },
     },
   )
 }
