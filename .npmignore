@@ -2,6 +2,8 @@
 vuepress
 docs
 node_modules
+test
+example
 src
 deploy.sh
 rollup.config.js
