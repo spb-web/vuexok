@@ -21,18 +21,25 @@ export type ActionOrMutationPayload<
     : never
 )
 
-export type ActionHandler<A extends Action<any, any>> = (
-  A extends ActionObject<any, any>
-    ? A['handler']
-    : A
+export type ActionHandler<VuexAction extends Action<any, any>> = (
+  VuexAction extends ActionObject<any, any>
+    ? VuexAction['handler']
+    : VuexAction
+)
+
+export type ModuleActionReturnType<
+  VuexAction extends Action<any, any>
+> = (
+  ReturnType<ActionHandler<VuexAction>> extends Promise<any> 
+    ? ReturnType<ActionHandler<VuexAction>> 
+    : Promise<ReturnType<ActionHandler<VuexAction>>>
 )
 
 export type ModuleActions<A extends ActionTree<any, any>> = {
   readonly [K in keyof A]: (
-    this: ThisType<A[K]>,
     ...payload:ActionOrMutationPayload<ActionHandler<A[K]>>
   ) => (
-    ReturnType<ActionHandler<A[K]>>
+    ModuleActionReturnType<A[K]>
   )
 }
 
@@ -40,9 +47,10 @@ export type ModuleMutations<A extends MutationTree<any>> = {
   readonly [K in keyof A]: (
     NonUndefined<A[K]> extends Mutation<any> 
       ? (
-          this: ThisType<A[K]>,
+        (
           ...payload:ActionOrMutationPayload<A[K]>
         ) => ReturnType<A[K]>
+      )
       : unknown
   )
 }
@@ -65,7 +73,10 @@ export type ModuleState<
 
 export type Unwatch = () => void
 
-export const modules:Map<string, ModuleInstance<Module<any, any>>> = new Map()
+export const modules:Map<
+  string,
+  ModuleInstance<Module<any, any>>
+> = new Map()
 
 export interface ModuleInstance<M extends Module<any, any>> {
   state: ModuleState<M['state']>,
@@ -87,11 +98,15 @@ export interface ModuleInstance<M extends Module<any, any>> {
     getters:ModuleGetters<NonUndefined<M['getters']>>
   ) => any>(
     getter: T,
-    callback: (value: ReturnType<T>, oldValue: ReturnType<T>) => void,
+    callback: (
+      value: ReturnType<T>,
+      oldValue: ReturnType<T>,
+    ) => void,
     options?: WatchOptions
   ) => Unwatch
   /**
-   * You may check if the module is already registered to the store or not via hasModule method.
+   * You may check if the module is already registered to the store
+   * or not via hasModule method.
    */
   hasModule: () => boolean,
   /**
@@ -227,7 +242,7 @@ export const createModule = <
   const module = buildModuleObject<
     S,
     R,
-    typeof moduleRaw & M
+    M
     // @ts-ignore
   >(store, path, moduleRaw)
 
