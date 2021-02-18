@@ -1,0 +1,15 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "test/types/tsconfig.eslint.json"
+  },
+  "plugins": ["eslint-plugin-expect-type"],
+  "extends": ["plugin:eslint-plugin-expect-type/recommended"],
+  "rules": {
+    "expect-type/expect": ["error", { "disableExpectTypeSnapshotFix": false }],
+    "no-unused-vars": 1,
+    "no-useless-files": 0,
+    "no-relative-import-in-test": 0
+  }
+}

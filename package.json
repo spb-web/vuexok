@@ -5,7 +5,7 @@
   "main": "dist/vuexok.js",
   "types": "dist/vuexok.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "eslint -c test/types/.eslintrc.json test/types/**/*.ts",
     "build": "rollup -c ./rollup.config.js && npm run types",
     "docs:dev": "vuepress dev vuepress",
     "docs:build": "vuepress build vuepress",
@@ -28,6 +28,10 @@
   "license": "ISC",
   "devDependencies": {
     "@rollup/plugin-typescript": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.15.1",
+    "@typescript-eslint/parser": "^4.15.1",
+    "eslint": "^7.20.0",
+    "eslint-plugin-expect-type": "0.0.5",
     "rollup": "^2.31.0",
     "rollup-plugin-terser": "^7.0.2",
     "tslib": "^2.0.3",
