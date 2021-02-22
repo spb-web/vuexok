@@ -27,3 +27,6 @@ yarn add vuexok
 - Совместимо с vuex 4 и vue 3 :fire:
 - Маленький размер vuexok
 - Вызов экшенов из веб-воркеров
+
+## Примеры
+- [Vuexok hello-world (FizzBuzz)](https://codesandbox.io/s/vuexok-hello-world-fizzbuzz-9phvr?eslint=1&fontsize=14&hidenavigation=1&module=%2Fsrc%2FApp.vue&theme=dark)

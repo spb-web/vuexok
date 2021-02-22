@@ -7,6 +7,6 @@ test
 example
 src
 deploy.sh
-rollup.config.js
+rollup.config.ts
 tsconfig.json
 .github
