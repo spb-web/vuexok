@@ -6,7 +6,7 @@
 После инициализации воркера надо передать его в метод `vuexokWorkerWrapper`
 
 ```js
-import { vuexokWorkerWrapper } from 'vuexok/dist/src/vuexokWorkerWrapper'
+import { vuexokWorkerWrapper } from 'vuexok/dist/vuexokWorkerWrapper'
 const worker = new Worker('./worker')
 vuexokWorkerWrapper(worker)
 ```

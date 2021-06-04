@@ -6,11 +6,16 @@ export default {
     './src/vuexok.ts',
     './src/vuexokWorkerGetActions.ts',
     './src/vuexokWorkerWrapper.ts',
+    './src/vuexokWorkerWrapper.ts',
+    './src/nuxt/module.ts',
+    './src/nuxt/plugin.ts',
+    './src/nuxt/vuexokCreateModule.ts',
   ],
   output: [
     { 
       dir: './dist',
       format: 'cjs',
+      preserveModules: true,
     },
   ],
   plugins: [
