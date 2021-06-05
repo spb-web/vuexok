@@ -10,3 +10,5 @@ deploy.sh
 rollup.config.ts
 tsconfig.json
 .github
+README.md
+README_RU.md
