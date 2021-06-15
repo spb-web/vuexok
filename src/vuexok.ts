@@ -1,4 +1,4 @@
-import { WatchOptions } from 'vue/types/umd'
+import type { WatchOptions } from 'vue/types/umd'
 import type { 
   Module, 
   Store,
@@ -10,6 +10,7 @@ import type {
   GetterTree,
   Action,
 } from 'vuex/types/index'
+import Vue from 'vue'
 
 type NonUndefined<A> = A extends undefined ? {} : A;
 
@@ -79,11 +80,13 @@ export const modules:Map<
 > = new Map()
 
 export interface ModuleInstance<M extends Module<any, any>> {
-  state: ModuleState<M['state']>,
-  actions: ModuleActions<NonUndefined<M['actions']>>,
-  mutations: ModuleMutations<NonUndefined<M['mutations']>>,
-  getters: ModuleGetters<NonUndefined<M['getters']>>,
-  modules: ModuleSubmodules<M['modules']>,
+  $events: Vue
+  $store: Store<any>|undefined
+  readonly state: ModuleState<M['state']>,
+  readonly actions: ModuleActions<NonUndefined<M['actions']>>,
+  readonly mutations: ModuleMutations<NonUndefined<M['mutations']>>,
+  readonly getters: ModuleGetters<NonUndefined<M['getters']>>,
+  readonly modules: ModuleSubmodules<M['modules']>,
   /**
    * Reactively watch fn's return value, and call the callback when
    * the value changes. fn receives the store's state as the first
@@ -93,7 +96,7 @@ export interface ModuleInstance<M extends Module<any, any>> {
    *
    * To stop watching, call the returned unwatch function.
    */
-  watch: <T extends (
+  readonly watch: <T extends (
     state:ModuleState<M['state']>,
     getters:ModuleGetters<NonUndefined<M['getters']>>
   ) => any>(
@@ -108,15 +111,21 @@ export interface ModuleInstance<M extends Module<any, any>> {
    * You may check if the module is already registered to the store
    * or not via hasModule method.
    */
-  hasModule: () => boolean,
+  readonly hasModule: () => boolean,
   /**
    * You can remove a registered module with unregister method.
    */
-  unregister: () => void,
+  readonly unregister: () => void,
   /**
    * 
    */
-  register: (moduleOptions?: ModuleOptions) => void,
+  readonly register: (store:Store<any>, moduleOptions?: ModuleOptions, throwErrorIfRegistered?:boolean) => void,
+
+  readonly on: (event:string, callback: () => any) => void
+  readonly once: (event:string, callback: () => any) => void
+  readonly off: (event:string, callback: () => any) => void
+
+  readonly path: string,
 }
 
 const helperReduce = <
@@ -145,44 +154,54 @@ const getKeyPath = (
   return namespaced ? path + '/' + key : key
 }
 
+const getStore = (module:ModuleInstance<any>) => {
+  const { $store } = module
+
+  if (!$store) {
+    throw new Error()
+  }
+
+  return $store
+}
+
 export const buildModuleObject = <
   S, R, M extends Module<S, R>
 >(
-  store:Store<R>,
   path: string,
-  moduleRaw: M,
+  moduleRaw: M extends Module<S, R> ? M : Module<S, R>,
 ) => {
   const { namespaced } = moduleRaw
 
   const module:ModuleInstance<M> = {
+    $events: new Vue(),
+    $store: undefined,
     state: new Proxy({} as ModuleState<M['state']>, {
       get(target, name) {
         // @ts-ignore
-        return store.state[path][name]
+        return getStore(module).state[path][name]
       }
     }),
 
     actions: helperReduce(moduleRaw.actions, (key) => {
-      return (payload:any) => store.dispatch(
+      return (payload:any) => getStore(module).dispatch(
         getKeyPath(path, key, namespaced),
         payload,
       )
     }) as any as ModuleActions<NonUndefined<M['actions']>>,
 
     mutations: helperReduce(moduleRaw.mutations, (key) => {
-      return (payload:any) => store.commit(
+      return (payload:any) => getStore(module).commit(
         getKeyPath(path, key, namespaced),
         payload,
       )
     }) as ModuleMutations<NonUndefined<M['mutations']>>,
 
     getters: helperReduce(moduleRaw.getters, (key) => {
-      return store.getters[getKeyPath(path, key, namespaced)]
+      return getStore(module).getters[getKeyPath(path, key, namespaced)]
     }) as ModuleGetters<NonUndefined<M['getters']>>,
 
     modules: helperReduce(moduleRaw.modules, (key, submodule) => {
       return buildModuleObject(
-        store,
         getKeyPath(path, key, true),
         submodule,
       )
@@ -193,25 +212,46 @@ export const buildModuleObject = <
       callback,
       options
     ) => {
-      return store.watch(
+      return getStore(module).watch(
         () => getter(module.state, module.getters),
         callback,
         options,
       )
     },
     hasModule() {
-      return store.hasModule(path)
+      return !!module.$store && module.$store.hasModule(path)
     },
     unregister() {
-      store.unregisterModule(path)
+      getStore(module).unregisterModule(path)
+      module.$store = undefined
     },
-    register(moduleOptions) {
-      store.registerModule(
-        path, 
-        moduleRaw,
-        moduleOptions,
-      )
-    }
+    register(store, moduleOptions, throwErrorIfRegistered = false) {
+      if (this.hasModule()) {
+        if (throwErrorIfRegistered) {
+          throw new Error()
+        }
+      } else {
+        module.$store = store
+  
+        store.registerModule(
+          path, 
+          moduleRaw,
+          moduleOptions,
+        )
+
+        this.$events.$emit('registered')
+      }
+    },
+    on(event, callback) {
+      this.$events.$on(event, callback)
+    },
+    once(event, callback) {
+      this.$events.$once(event, callback)
+    },
+    off(event, callback) {
+      this.$events.$off(event, callback)
+    },
+    path,
   }
 
   modules.set(path, module)
@@ -219,34 +259,17 @@ export const buildModuleObject = <
   return module
 }
 
-// Взможно лучше сделать так: 
-//
-// let vuexStore:Store<any>|null = null
-
-// export const vuexokUseStore = <R>(store:Store<R>) => {
-//   if (vuexStore) {
-//     throw new Error()
-//   }
-
-//   vuexStore = store
-// }
-
 export const createModule = <
   S, R, M extends Module<S, R>
 >(
-  store:Store<R>,
   path: string,
   moduleRaw: M extends Module<S, R> ? M : Module<S, R>,
-  moduleOptions?: ModuleOptions
 ) => {
   const module = buildModuleObject<
     S,
     R,
     M
-    // @ts-ignore
-  >(store, path, moduleRaw)
-
-  module.register(moduleOptions)
+  >(path, moduleRaw)
 
   return module
 }
