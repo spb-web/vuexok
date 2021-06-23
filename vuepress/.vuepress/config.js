@@ -22,65 +22,99 @@ module.exports = {
     // The key is the path for the locale to be nested under.
     // As a special case, the default locale can use '/' as its path.
     '/': {
-      lang: 'ru-RU', // this will be set as the lang attribute on <html>
-      title: 'Vuexok',
-      description: 'Упрощение работы с vuex, поддержка typescript',
-      nav: [
-        { text: 'Github', link: 'https://github.com/spb-web/vuexok' , ariaLabel: 'Github' }
-      ],
-    },
-    '/en/': {
       lang: 'en-US',
       title: 'Vuexok',
       description: 'Vuexok',
-      nav: [
-        { text: 'Github', link: 'https://github.com/spb-web/vuexok' , ariaLabel: 'Github' }
-      ],
+    },
+    '/ru/': {
+      lang: 'ru-RU', // this will be set as the lang attribute on <html>
+      title: 'Vuexok',
+      description: 'Упрощение работы с vuex, поддержка typescript',
     }
   },
   themeConfig: {
-    sidebar: [
-      {
-        title: 'Introduction',   // required
-        path: '/',      // optional, link of the title, which should be an absolute path and must exist
-        collapsable: false, // optional, defaults to true
-        sidebarDepth: -1,    // optional, defaults to 1
-        children: [
-          '/'
-        ]
-      },
-      {
-        title: 'Tooling',
-        path: '/Tooling', 
-        initialOpenGroupIndex: 1 // optional, defaults to 0, defines the index of initially opened subgroup
-      },
-      {
-        title: 'Worker',
-        path: '/Worker', 
-        initialOpenGroupIndex: -1 // optional, defaults to 0, defines the index of initially opened subgroup
-      },
-      {
-        title: 'No typescript',
-        path: '/JsProjects', 
-        initialOpenGroupIndex: -1 // optional, defaults to 0, defines the index of initially opened subgroup
-      },
-      {
-        title: 'SSR',
-        path: '/Ssr', 
-        initialOpenGroupIndex: -1 // optional, defaults to 0, defines the index of initially opened subgroup
-      },
-    ],
     locales: {
+      // The key is the path for the locale to be nested under.
+      // As a special case, the default locale can use '/' as its path.
       '/': {
         nav: [
           { text: 'Github', link: 'https://github.com/spb-web/vuexok' , ariaLabel: 'Github' }
         ],
+        sidebar: {
+          '/': [
+            {
+              title: 'Introduction',   // required
+              path: '/',      // optional, link of the title, which should be an absolute path and must exist
+              collapsable: false, // optional, defaults to true
+              sidebarDepth: 0,    // optional, defaults to 1
+            },
+            {
+              title: 'Tooling',
+              path: '/Tooling', 
+              initialOpenGroupIndex: 1 // optional, defaults to 0, defines the index of initially opened subgroup
+            },
+            {
+              title: 'Worker',
+              path: '/Worker', 
+              initialOpenGroupIndex: -1 // optional, defaults to 0, defines the index of initially opened subgroup
+            },
+            {
+              title: 'No typescript',
+              path: '/JsProjects', 
+              initialOpenGroupIndex: -1 // optional, defaults to 0, defines the index of initially opened subgroup
+            },
+            {
+              title: 'SSR',
+              path: '/Ssr', 
+              initialOpenGroupIndex: -1 // optional, defaults to 0, defines the index of initially opened subgroup
+            },
+            {
+              title: 'Migrate to 1.x.x',
+              path: '/MigrateTo1.x.x', 
+              initialOpenGroupIndex: -1 // optional, defaults to 0, defines the index of initially opened subgroup
+            },
+          ]
+        },
       },
-      '/en/': {
+      '/ru/': {
         nav: [
           { text: 'Github', link: 'https://github.com/spb-web/vuexok' , ariaLabel: 'Github' }
         ],
-      }
-    }
+        sidebar: {
+          '/ru/': [
+          {
+            title: 'Introduction',   // required
+            path: '/ru/',      // optional, link of the title, which should be an absolute path and must exist
+            collapsable: false, // optional, defaults to true
+            sidebarDepth: 0,    // optional, defaults to 1
+          },
+          {
+            title: 'Tooling',
+            path: '/ru/Tooling', 
+            initialOpenGroupIndex: 1 // optional, defaults to 0, defines the index of initially opened subgroup
+          },
+          {
+            title: 'Worker',
+            path: '/ru/Worker', 
+            initialOpenGroupIndex: -1 // optional, defaults to 0, defines the index of initially opened subgroup
+          },
+          {
+            title: 'No typescript',
+            path: '/ru/JsProjects', 
+            initialOpenGroupIndex: -1 // optional, defaults to 0, defines the index of initially opened subgroup
+          },
+          {
+            title: 'SSR',
+            path: '/ru/Ssr', 
+            initialOpenGroupIndex: -1 // optional, defaults to 0, defines the index of initially opened subgroup
+          },
+          {
+            title: 'Migrate to 1.x.x',
+            path: '/ru/MigrateTo1.x.x', 
+            initialOpenGroupIndex: -1 // optional, defaults to 0, defines the index of initially opened subgroup
+          },
+        ]},
+      },
+    },
   }
 }
