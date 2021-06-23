@@ -1,1 +1,1 @@
-Страница пока не готова, но типизация отлично работает с jsdoc :)
+The page is not ready yet, but typing works fine with jsdoc :)

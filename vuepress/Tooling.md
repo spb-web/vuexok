@@ -1,51 +1,55 @@
 # Tooling
-Vuexok внутри использует vuex. Основной целью создания vuexok являлось не создания нового api, а расширение текущего api vuex. Поэтому при миграции у вас не будет необходимости переписывать код компонентов.
+Vuexok internally uses vuex. The main purpose of creating vuexok was not to create a new api, but to extend the current vuex api. Therefore, when migrating, you will not need to rewrite the component code.
 
-## Создание модуля
+## Module creation
 
 ::: warning
-Обратите внимание, что vuexok создает динамические модули. Все модули будут зарегистрированы уже после того, как хранилище было создано, используя метод [store.registerModule](https://vuex.vuejs.org/guide/modules.html#dynamic-module-registration)
+Please note that vuexok creates dynamic modules. All modules will be registered after the store has been created using the [store.registerModule](https://vuex.vuejs.org/guide/modules.html#dynamic-module-registration) method
 :::
 
-Обратите внимание, как вызывается мутация plus из экшена increment
+Notice how the plus mutation is called from the increment action
 ``` ts{11}
 import { createModule } from 'vuexok'
 import store from '@/store'
 
-export const counterModule = createModule(store, 'counterModule', {
-  namespaced: true,
-  state: {
-    count: 0,
-  },
-  actions: {
-    async increment() {
-      counterModule.mutations.plus(1)
+export const counterModule = createModule(
+  'counterModule',
+  {
+    namespaced: true,
+    state: {
+      count: 0,
     },
-  },
-  mutations: {
-    plus(state, payload:number) {
-      state.count += payload
+    actions: {
+      async increment() {
+        counterModule.mutations.plus(1)
+      },
     },
-    setNumber(state, payload:number) {
-      state.count = payload
+    mutations: {
+      plus(state, payload:number) {
+        state.count += payload
+      },
+      setNumber(state, payload:number) {
+        state.count = payload
+      },
     },
-  },
-  getters: {
-    x2(state) {
-      return state.count * 2
+    getters: {
+      x2(state) {
+        return state.count * 2
+      },
     },
-  },
-})
+  }
+)
+
+counterModule.register(store)
 ```
 
 ::: tip
-Что бы не несколько модулей не реагировали на тот же тип мутаций/действий.
-Рекомендуется создавать модули с собственным пространством имён, указав опцию [`namespaced: true`](https://vuex.vuejs.org/ru/guide/modules.html#%D0%BF%D1%80%D0%BE%D1%81%D1%82%D1%80%D0%B0%D0%BD%D1%81%D1%82%D0%B2%D0%B0-%D0%B8%D0%BC%D0%B5%D0%BD)
+So that several modules do not react to the same type of mutations / actions, it is recommended to create modules with their own namespace by specifying the [`namespaced: true`](https://vuex.vuejs.org/guide/modules.html#namespacing) option
 :::
 
-## Использование модуля Vuexok в компонентах Vue
+## Using Vuexok Module in Vue Components
 
-Свойство state в модуле реактивно, как и в [store.state](https://vuex.vuejs.org/guide/state.html#getting-vuex-state-into-vue-components), так что чтобы использовать состояние модуля в компонентах Vue достаточно просто вернуть часть состояния модуля в [вычисляемом свойстве](https://ru.vuejs.org/v2/guide/computed.html).
+The state property in a module is reactive, just like in [store.state] (https://vuex.vuejs.org/guide/state.html#getting-vuex-state-into-vue-components), so to use the state of the module in Vue components it is enough to simply return part of the module state in the [computed property] (https://v3.vuejs.org/guide/reactivity-computed-watchers.html).
 
 ```ts{1,6,7,8}
 import { counterModule } from '@/store/modules/counterModule'
@@ -60,7 +64,7 @@ const Counter = Vue.extends({
 })
 ```
 
-## Компоненты Vue на основе классов
+### Vue Class Based Components
 
 ```ts{2,9,10,11}
 import Vue from 'vue'
@@ -77,31 +81,49 @@ export default class MyComponent extends Vue {
 }
 ```
 
-## Вызов экшенов и мутаций
-## Экшены
+### Composition API
+
+```ts{2,8}
+import { computed, defineComponent } from '@vue/composition-api'
+import { counterModule } from '@/store/modules/counterModule'
+
+export default defineComponent({
+  template: '<div>{{ count }}</div>',
+  setup() {
+    return {
+      count: computed(() => counterModule.state.count)
+    }
+  },
+})
+```
+
+## Calling actions and mutations
+## Actions
 ```ts
 import { counterModule } from '@/store/modules/counterModule'
 
-// Аналогично вызову
-// store.dispatch('counterModule/increment')
+// Similar to
+// store.dispatch('counterModule/increment').then(() => {
+//   console.log('increment called')
+// })
 
 counterModule.actions.increment().then(() => {
   console.log('increment called')
 })
 ```
-## Мутации
+## Mutations
 ```ts
 import { counterModule } from '@/store/modules/counterModule'
 
-// Аналогично вызову
+// Similar to
 // store.commit('counterModule/setNumber', 10)
 
 counterModule.mutations.setNumber(10)
 ```
 
-## Вотчеры
+## Watch
 
-Вотчеры модулей работают также как [store.watch](https://vuex.vuejs.org/api/#watch). Единственная разница заключается в том , что в качестве параметров функции-гетера передаются стейт и гетеры модуля
+Module watchers work the same way as [store.watch](https://vuex.vuejs.org/api/#watch). The only difference is that the state and getters of the module are passed as parameters of the getter function.
 
 ```ts
 const unwatch = jwtModule.watch(

@@ -1,15 +1,14 @@
 {
   "name": "vuexok",
-  "version": "0.0.12",
-  "description": "",
+  "version": "1.0.0",
+  "description": "Vuex at powerful with Vuexok",
   "main": "dist/vuexok.js",
   "types": "dist/vuexok.d.ts",
   "scripts": {
     "test": "eslint -c test/types/.eslintrc.json test/types/**/*.ts",
     "build": "rollup -c ./rollup.config.ts",
     "docs:dev": "vuepress dev vuepress",
-    "docs:build": "vuepress build vuepress",
-    "types": "tsc --emitDeclarationOnly --project ./tsconfig.json"
+    "docs:build": "vuepress build vuepress"
   },
   "keywords": [
     "typescript",

@@ -1,18 +1,18 @@
 import type { WatchOptions } from 'vue/types/umd'
 import type { 
-  Module, 
+  Module,
   Store,
-  ModuleOptions, 
-  ActionTree, 
-  MutationTree, 
-  Mutation, 
-  ActionObject, 
+  ModuleOptions,
+  ActionTree,
+  MutationTree,
+  Mutation,
+  ActionObject,
   GetterTree,
   Action,
 } from 'vuex/types/index'
 import Vue from 'vue'
 
-type NonUndefined<A> = A extends undefined ? {} : A;
+type NonUndefined<A> = A extends undefined ? {} : A
 
 export type ActionOrMutationPayload<
   T extends (injectee:any, ...payload: any) => any
@@ -31,8 +31,8 @@ export type ActionHandler<VuexAction extends Action<any, any>> = (
 export type ModuleActionReturnType<
   VuexAction extends Action<any, any>
 > = (
-  ReturnType<ActionHandler<VuexAction>> extends Promise<any> 
-    ? ReturnType<ActionHandler<VuexAction>> 
+  ReturnType<ActionHandler<VuexAction>> extends Promise<any>
+    ? ReturnType<ActionHandler<VuexAction>>
     : Promise<ReturnType<ActionHandler<VuexAction>>>
 )
 
@@ -46,7 +46,7 @@ export type ModuleActions<A extends ActionTree<any, any>> = {
 
 export type ModuleMutations<A extends MutationTree<any>> = {
   readonly [K in keyof A]: (
-    NonUndefined<A[K]> extends Mutation<any> 
+    NonUndefined<A[K]> extends Mutation<any>
       ? (
         (
           ...payload:ActionOrMutationPayload<A[K]>
@@ -121,9 +121,9 @@ export interface ModuleInstance<M extends Module<any, any>> {
    */
   readonly register: (store:Store<any>, moduleOptions?: ModuleOptions, throwErrorIfRegistered?:boolean) => void,
 
-  readonly on: (event:string, callback: () => any) => void
-  readonly once: (event:string, callback: () => any) => void
-  readonly off: (event:string, callback: () => any) => void
+  readonly on: (event:'registered', callback: () => any) => void,
+  readonly once: (event:'registered', callback: () => any) => void,
+  readonly off: (event:'registered', callback: () => any) => void,
 
   readonly path: string,
 }
@@ -133,7 +133,7 @@ const helperReduce = <
   I,
 >(
   payload:P | undefined,
-  getter:(key: string, value:any) => I
+  getter:(key: string, value:any) => I,
 ) => {
   if (payload) {
     return new Proxy(payload, {
@@ -158,7 +158,7 @@ const getStore = (module:ModuleInstance<any>) => {
   const { $store } = module
 
   if (!$store) {
-    throw new Error()
+    throw new Error(`Module ${module.path} not registered. Use module.register(store)`)
   }
 
   return $store
