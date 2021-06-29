@@ -13,7 +13,8 @@
   "keywords": [
     "typescript",
     "vue",
-    "vuex"
+    "vuex",
+    "ssr"
   ],
   "author": "spbweb",
   "repository": {
@@ -41,6 +42,6 @@
     "vuex": "^3.5.1"
   },
   "dependencies": {
-    "upath": "^2.0.1"
+    "mitt": "^3.0.0"
   }
 }

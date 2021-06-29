@@ -10,7 +10,8 @@ import type {
   GetterTree,
   Action,
 } from 'vuex/types/index'
-import Vue from 'vue'
+import type { Emitter, Handler as MittHandler } from 'mitt'
+import mitt from 'mitt'
 
 type NonUndefined<A> = A extends undefined ? {} : A
 
@@ -74,13 +75,17 @@ export type ModuleState<
 
 export type Unwatch = () => void
 
+export type ModuleEvents = {
+  registered: undefined
+}
+
 export const modules:Map<
   string,
   ModuleInstance<Module<any, any>>
 > = new Map()
 
 export interface ModuleInstance<M extends Module<any, any>> {
-  $events: Vue
+  $events: Emitter<ModuleEvents>
   $store: Store<any>|undefined
   readonly state: ModuleState<M['state']>,
   readonly actions: ModuleActions<NonUndefined<M['actions']>>,
@@ -121,9 +126,9 @@ export interface ModuleInstance<M extends Module<any, any>> {
    */
   readonly register: (store:Store<any>, moduleOptions?: ModuleOptions, throwErrorIfRegistered?:boolean) => void,
 
-  readonly on: (event:'registered', callback: () => any) => void,
-  readonly once: (event:'registered', callback: () => any) => void,
-  readonly off: (event:'registered', callback: () => any) => void,
+  on<Key extends keyof ModuleEvents>(type: Key, handler: MittHandler<ModuleEvents[Key]>): void;
+  once<Key extends keyof ModuleEvents>(type: Key, handler: MittHandler<ModuleEvents[Key]>): void;
+  off<Key extends keyof ModuleEvents>(type: Key, handler?: MittHandler<ModuleEvents[Key]>): void;
 
   readonly path: string,
 }
@@ -173,11 +178,10 @@ export const buildModuleObject = <
   const { namespaced } = moduleRaw
 
   const module:ModuleInstance<M> = {
-    $events: new Vue(),
+    $events: mitt(),
     $store: undefined,
     state: new Proxy({} as ModuleState<M['state']>, {
       get(target, name) {
-        // @ts-ignore
         return getStore(module).state[path][name]
       }
     }),
@@ -239,17 +243,23 @@ export const buildModuleObject = <
           moduleOptions,
         )
 
-        this.$events.$emit('registered')
+        this.$events.emit('registered')
       }
     },
-    on(event, callback) {
-      this.$events.$on(event, callback)
+    on(type, handler) {
+      this.$events.on(type, handler)
     },
-    once(event, callback) {
-      this.$events.$once(event, callback)
+    once(type, handler) {
+      const offHandler = () => {
+        this.$events.off(type, handler)
+        this.$events.off(type, offHandler)
+      }
+
+      this.$events.on(type, handler)
+      this.$events.on(type, offHandler)
     },
-    off(event, callback) {
-      this.$events.$off(event, callback)
+    off(type, handler) {
+      this.$events.off(type, handler)
     },
     path,
   }
