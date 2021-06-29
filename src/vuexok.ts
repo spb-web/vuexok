@@ -169,7 +169,20 @@ const getStore = (module:ModuleInstance<any>) => {
   return $store
 }
 
-export const buildModuleObject = <
+const initSubModules = (module: ModuleInstance<Module<any, any>>, store:Store<any>) => {
+  const { modules } = module
+
+  if (modules) {
+    Object.values(modules).forEach((subModule) => {
+      subModule.$store = store
+      subModule.$events.emit('registered')
+
+      initSubModules(subModule, store)
+    })
+  }
+}
+
+export const createModule = <
   S, R, M extends Module<S, R>
 >(
   path: string,
@@ -205,7 +218,7 @@ export const buildModuleObject = <
     }) as ModuleGetters<NonUndefined<M['getters']>>,
 
     modules: helperReduce(moduleRaw.modules, (key, submodule) => {
-      return buildModuleObject(
+      return createModule(
         getKeyPath(path, key, true),
         submodule,
       )
@@ -243,6 +256,8 @@ export const buildModuleObject = <
           moduleOptions,
         )
 
+        initSubModules(this, store)
+
         this.$events.emit('registered')
       }
     },
@@ -265,21 +280,6 @@ export const buildModuleObject = <
   }
 
   modules.set(path, module)
-
-  return module
-}
-
-export const createModule = <
-  S, R, M extends Module<S, R>
->(
-  path: string,
-  moduleRaw: M extends Module<S, R> ? M : Module<S, R>,
-) => {
-  const module = buildModuleObject<
-    S,
-    R,
-    M
-  >(path, moduleRaw)
 
   return module
 }
