@@ -5,6 +5,7 @@
   "main": "dist/vuexok.js",
   "types": "dist/vuexok.d.ts",
   "scripts": {
+    "prepare": "npm run build",
     "test": "eslint -c test/types/.eslintrc.json test/types/**/*.ts",
     "build": "rollup -c ./rollup.config.ts",
     "docs:dev": "vuepress dev vuepress",
