@@ -122,7 +122,9 @@ export interface ModuleInstance<M extends Module<any, any>> {
    */
   readonly unregister: () => void,
   /**
-   * 
+   * @param store
+   * @param moduleOptions see https://vuex.vuejs.org/guide/modules.html#dynamic-module-registration
+   * @param throwErrorIfRegistered throw an error if the module is already registered
    */
   readonly register: (store:Store<any>, moduleOptions?: ModuleOptions, throwErrorIfRegistered?:boolean) => void,
 
@@ -163,7 +165,7 @@ const getStore = (module:ModuleInstance<any>) => {
   const { $store } = module
 
   if (!$store) {
-    throw new Error(`Module ${module.path} not registered. Use module.register(store)`)
+    throw new Error(`Module ${module.path} not registered. Use module.register(store)\nsee https://spb-web.github.io/vuexok/MigrateTo1.x.x.html`)
   }
 
   return $store
@@ -182,6 +184,31 @@ const initSubModules = (module: ModuleInstance<Module<any, any>>, store:Store<an
   }
 }
 
+/**
+ * @example
+ * const module = createModule('path', {
+ *   namespaced: true,
+ *   state: () => ({
+ *     count: 1,
+ *   }),
+ *   mutations: {
+ *     increment(state) {
+ *       state.count++
+ *     }
+ *   },
+ * })
+ * 
+ * module.once('registered', () => {
+ *   setTimeout(() => {
+ *     module.mutations.increment()
+ *   })
+ * })
+ * 
+ * module.register(store)
+ * 
+ * @param path 
+ * @param moduleRaw 
+ */
 export const createModule = <
   S, R, M extends Module<S, R>
 >(
@@ -245,7 +272,7 @@ export const createModule = <
     register(store, moduleOptions, throwErrorIfRegistered = false) {
       if (this.hasModule()) {
         if (throwErrorIfRegistered) {
-          throw new Error()
+          throw new Error(`Module "${this.path}" already registered`)
         }
       } else {
         module.$store = store
