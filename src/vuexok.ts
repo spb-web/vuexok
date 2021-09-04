@@ -76,7 +76,8 @@ export type ModuleState<
 export type Unwatch = () => void
 
 export type ModuleEvents = {
-  registered: undefined
+  registered: undefined,
+  unregistered: undefined,
 }
 
 export const modules:Map<
@@ -268,6 +269,8 @@ export const createModule = <
     unregister() {
       getStore(module).unregisterModule(path)
       module.$store = undefined
+
+      this.$events.emit('unregistered')
     },
     register(store, moduleOptions, throwErrorIfRegistered = false) {
       if (this.hasModule()) {
