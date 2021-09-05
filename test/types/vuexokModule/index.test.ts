@@ -8,13 +8,13 @@ const store = new Store({
   },
 })
 
-const module = createModule(store, 'moduleName', {
+const module = createModule('moduleName', {
   state: {
     number: 1,
   },
   actions: {
     plus(injectee, payload: number) {
-      injectee // $ExpectType ActionContext<{ number: number; }, { global: string; }>
+      injectee // $ExpectType ActionContext<{ number: number; }, unknown>
       module.mutations.plus(payload) // $ExpectType void
     },
     async plusAndReturnStr(injectee, payload: number) {
@@ -27,7 +27,11 @@ const module = createModule(store, 'moduleName', {
   },
   mutations: {
     plus(state, payload: number) {
-      state.number = payload
+      state.number += payload
+      state.number // $ExpectType number
+    },
+    minus(state, payload: number) {
+      state.number -= payload
       state.number // $ExpectType number
     },
   },
@@ -48,8 +52,10 @@ const module = createModule(store, 'moduleName', {
 // $ExpectType () => boolean
 module.hasModule
 
-// $ExpectType (moduleOptions?: ModuleOptions | undefined) => void
+// $ExpectType (store: Store<any>, moduleOptions?: ModuleOptions | undefined, throwErrorIfRegistered?: boolean | undefined) => void
 module.register
+// $ExpectType void
+module.register(store)
 
 // $ExpectType () => void
 module.unregister
@@ -86,3 +92,10 @@ const unwatch = module.watch((state, getters) => {
 
 // $ExpectType void
 unwatch()
+
+const unsubscribe = module.subscribe((m, s) => {
+  m // $ExpectType "plus" | "minus"
+  s // $ExpectType Readonly<{ number: number; }>
+})
+
+unsubscribe // $ExpectType Unsubscribe
