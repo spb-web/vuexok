@@ -73,7 +73,16 @@ export type ModuleState<
   )
 > = Readonly<M extends (...p: any[]) => any ? ReturnType<M> : M>
 
+export type MutationsKeys<M extends Module<any, any>> = keyof NonUndefined<M['mutations']> extends never ? any : keyof NonUndefined<M['mutations']>
+
 export type Unwatch = () => void
+export type Subscribe<M extends Module<any, any>> = (
+  handle:(
+    mutation: MutationsKeys<M>,
+    state: ModuleState<M['state']>,
+  ) => any
+) => Unsubscribe
+export type Unsubscribe = () => void
 
 export type ModuleEvents = {
   registered: undefined,
@@ -86,8 +95,8 @@ export const modules:Map<
 > = new Map()
 
 export interface ModuleInstance<M extends Module<any, any>> {
-  $events: Emitter<ModuleEvents>
   $store: Store<any>|undefined
+  readonly $events: Emitter<ModuleEvents>
   readonly state: ModuleState<M['state']>,
   readonly actions: ModuleActions<NonUndefined<M['actions']>>,
   readonly mutations: ModuleMutations<NonUndefined<M['mutations']>>,
@@ -113,6 +122,8 @@ export interface ModuleInstance<M extends Module<any, any>> {
     ) => void,
     options?: WatchOptions
   ) => Unwatch
+
+  readonly subscribe: Subscribe<M>
   /**
    * You may check if the module is already registered to the store
    * or not via hasModule method.
@@ -152,14 +163,6 @@ const helperReduce = <
       }
     })
   }
-}
-
-const getKeyPath = (
-  path:string,
-  key:string,
-  namespaced?: boolean,
-) => {
-  return namespaced ? path + '/' + key : key
 }
 
 const getStore = (module:ModuleInstance<any>) => {
@@ -217,10 +220,15 @@ export const createModule = <
   moduleRaw: M extends Module<S, R> ? M : Module<S, R>,
 ) => {
   const { namespaced } = moduleRaw
+  const pathPrefix = namespaced ? path + '/' : ''
+  const mutationsTypes:string[] = Object
+    .keys(moduleRaw.mutations ?? {})
+    .map(mutationType => `${pathPrefix}${mutationType}`)
 
   const module:ModuleInstance<M> = {
     $events: mitt(),
     $store: undefined,
+
     state: new Proxy({} as ModuleState<M['state']>, {
       get(target, name) {
         return getStore(module).state[path][name]
@@ -229,25 +237,25 @@ export const createModule = <
 
     actions: helperReduce(moduleRaw.actions, (key) => {
       return (payload:any) => getStore(module).dispatch(
-        getKeyPath(path, key, namespaced),
+        `${pathPrefix}${key}`,
         payload,
       )
     }) as any as ModuleActions<NonUndefined<M['actions']>>,
 
     mutations: helperReduce(moduleRaw.mutations, (key) => {
       return (payload:any) => getStore(module).commit(
-        getKeyPath(path, key, namespaced),
+        `${pathPrefix}${key}`,
         payload,
       )
     }) as ModuleMutations<NonUndefined<M['mutations']>>,
 
     getters: helperReduce(moduleRaw.getters, (key) => {
-      return getStore(module).getters[getKeyPath(path, key, namespaced)]
+      return getStore(module).getters[`${pathPrefix}${key}`]
     }) as ModuleGetters<NonUndefined<M['getters']>>,
 
     modules: helperReduce(moduleRaw.modules, (key, submodule) => {
       return createModule(
-        getKeyPath(path, key, true),
+        `${pathPrefix}${key}`,
         submodule,
       )
     }) as any as ModuleSubmodules<M['modules']>,
@@ -262,6 +270,15 @@ export const createModule = <
         callback,
         options,
       )
+    },
+    subscribe(handle) {
+      return getStore(module).subscribe((mutationPayload, state) => {
+        if (mutationsTypes.includes(mutationPayload.type)) {
+          const key = (namespaced ? mutationPayload.type.substr(pathPrefix.length) : mutationPayload) as any as MutationsKeys<M>
+
+          handle(key, state)
+        }
+      })
     },
     hasModule() {
       return !!module.$store && module.$store.hasModule(path)
