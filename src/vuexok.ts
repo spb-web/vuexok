@@ -15,6 +15,10 @@ import mitt from 'mitt'
 
 type NonUndefined<A> = A extends undefined ? {} : A
 
+export type ValuesType<
+  T extends Record<any, any>
+> = T extends object ? T[keyof T] : never;
+
 export type ActionOrMutationPayload<
   T extends (injectee:any, ...payload: any) => any
 > = (
@@ -73,12 +77,25 @@ export type ModuleState<
   )
 > = Readonly<M extends (...p: any[]) => any ? ReturnType<M> : M>
 
-export type MutationsKeys<M extends Module<any, any>> = keyof NonUndefined<M['mutations']> extends never ? any : keyof NonUndefined<M['mutations']>
+type MutationsPayloads<
+  A extends MutationTree<any>,
+> = {
+  readonly [K in keyof A]: {
+    type: K extends string ? K : any,
+    payload: NonUndefined<A[K]> extends Mutation<any>
+      ? ActionOrMutationPayload<A[K]>[0]
+      : unknown
+  }
+}
+
+export type MutationPayload<M extends Module<any, any>, Mutations = MutationsPayloads<NonUndefined<M['mutations']>>> = (
+  Mutations extends object ? ValuesType<Mutations> : any
+)
 
 export type Unwatch = () => void
 export type Subscribe<M extends Module<any, any>> = (
   handle:(
-    mutation: MutationsKeys<M>,
+    mutation: MutationPayload<M>,
     state: ModuleState<M['state']>,
   ) => any
 ) => Unsubscribe
@@ -274,9 +291,12 @@ export const createModule = <
     subscribe(handle) {
       return getStore(module).subscribe((mutationPayload, state) => {
         if (mutationsTypes.includes(mutationPayload.type)) {
-          const key = (namespaced ? mutationPayload.type.substr(pathPrefix.length) : mutationPayload) as any as MutationsKeys<M>
+          const payload = {
+            type: (namespaced ? mutationPayload.type.substr(pathPrefix.length) : mutationPayload),
+            payload: mutationPayload.payload,
+          } as MutationPayload<M>
 
-          handle(key, state)
+          handle(payload, state)
         }
       })
     },

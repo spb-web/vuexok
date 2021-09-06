@@ -94,7 +94,12 @@ const unwatch = module.watch((state, getters) => {
 unwatch()
 
 const unsubscribe = module.subscribe((m, s) => {
-  m // $ExpectType "plus" | "minus"
+  m.type // $ExpectType "plus" | "minus"
+  m.payload // $ExpectType number
+
+  if (m.type === 'plus') {
+    m.payload // $ExpectType number
+  }
   s // $ExpectType Readonly<{ number: number; }>
 })
 

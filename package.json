@@ -28,7 +28,6 @@
   "homepage": "https://spb-web.github.io/vuexok",
   "license": "ISC",
   "devDependencies": {
-    "@nuxt/types": "^2.15.6",
     "@rollup/plugin-typescript": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^4.15.1",
     "@typescript-eslint/parser": "^4.15.1",
